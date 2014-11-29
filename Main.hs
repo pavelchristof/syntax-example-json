@@ -107,9 +107,6 @@ main = do
     case AP.parseOnly (AP.skipSpace *> parser <* AP.skipSpace <* AP.endOfInput) t of
       Left err  -> putStrLn err
       Right val -> do
-        -- If parsing succeeded print the JSON value.
-        print val
-
         -- Try to pretty print it.
         -- (Printing cannot really fail in this example)
         case printer val of
