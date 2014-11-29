@@ -1,25 +1,59 @@
 {
-  "glossary": {
-    "GlossDiv": {
-      "GlossList": {
-        "GlossEntry": {
-          "Abbrev": "ISO 8879:1986",
-          "Acronym": "SGML",
-          "GlossDef": {
-            "GlossSeeAlso": [
-              "GML",
-              "XML"
-            ],
-            "para": "A meta-markup language, used to create markup languages such as DocBook."
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "items": {
+    "properties": {
+      "dimensions": {
+        "properties": {
+          "height": {
+            "type": "number"
           },
-          "GlossSee": "markup",
-          "GlossTerm": "Standard Generalized Markup Language",
-          "ID": "SGML",
-          "SortAs": "SGML"
-        }
+          "length": {
+            "type": "number"
+          },
+          "width": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "length",
+          "width",
+          "height"
+        ],
+        "type": "object"
       },
-      "title": "S"
+      "id": {
+        "description": "The unique identifier for a product",
+        "type": "number"
+      },
+      "name": {
+        "type": "string"
+      },
+      "price": {
+        "exclusiveMinimum": true,
+        "minimum": 0.0,
+        "type": "number"
+      },
+      "tags": {
+        "items": {
+          "type": "string"
+        },
+        "minItems": 1.0,
+        "type": "array",
+        "uniqueItems": true
+      },
+      "warehouseLocation": {
+        "$ref": "http://json-schema.org/geo",
+        "description": "Coordinates of the warehouse with the product"
+      }
     },
-    "title": "example glossary"
-  }
+    "required": [
+      "id",
+      "name",
+      "price"
+    ],
+    "title": "Product",
+    "type": "object"
+  },
+  "title": "Product set",
+  "type": "array"
 }
