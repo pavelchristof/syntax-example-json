@@ -33,31 +33,38 @@ data Value = Object (Map Text Value)
 
 $(makePrisms ''Value)
 
--- | Converts between a map and a list.
+-- | Char encoded as 4 hex digits.
+hexCode :: SyntaxText syn => Indent syn Char
+hexCode = from enum . bifoldl1_ (iso u f) /$/ sireplicate 4 S.digitHex
+  where
+    f (x, y) = 16 * x + y
+    u 0 = Nothing
+    u n = Just (n `quotRem` 16)
+
+string :: SyntaxText syn => Indent syn Text
+string =  S.packed /$/ S.char '"' */ simany character /* S.char '"'
+  where
+    character =  S.satisfy (\x -> x /= '"' && x /= '\\')
+             /|/ S.char '\\' */ escapedChar
+
+    escapedChar =  S.char 'u' */ hexCode
+               /|/ S.choice
+                   [ exact v /$/ S.char e
+                   | (v, e) <- [ ('"', '"'), ('\\', '\\'), ('/', '/'), ('\b', 'b')
+                               , ('\f', 'f'), ('\n', 'n') , ('\r', 'r'), ('\t', 't')]
+                   ]
+
 mapFromList :: Ord i => Iso' (Map i v) [(i, v)]
 mapFromList = iso Map.toList Map.fromList
 
--- | A JSON string, with escaping.
-string :: SyntaxText syn => Indent syn Text
-string =  S.packed /$/ S.char '"' */ simany character /* S.char '"'
-      /?/ "Error in \"string\"."
-  where 
-    character =  S.char '\\' */ escapedChar
-             /|/ S.satisfy (\x -> x /= '"' && x /= '\\')
-             /?/ "Invalid escape character."
-    escapedChar = S.choice $ map (\(v, e) -> exact v /$/ S.char e)
-                      [ ('"', '"'), ('\\', '\\'), ('/', '/'), ('\b', 'b')
-                      , ('\f', 'f'), ('\n', 'n') , ('\r', 'r'), ('\t', 't')]
-
 object :: SyntaxText syn => Indent syn Value
 object = _Object . mapFromList 
-      /$~ S.char '{' 
+      /$~ S.char '{'
       /*/ S.indented (
               S.breakLine /*/
               S.sepBy field (S.spaces_ /* S.char ',' /* S.breakLine)
           )
       /*/ S.breakLine /*/ S.char '}'
-      /?/ "Error in \"object\"."
   where field = string /* S.spaces_ /* S.char ':' /* S.spaces /*/ value
 
 array :: SyntaxText syn => Indent syn Value
@@ -68,7 +75,6 @@ array = _Array
              S.sepBy value (S.spaces_ /* S.char ',' /* S.breakLine)
          )
      /*/ S.breakLine /*/ S.char ']'
-     /?/ "Error in \"array\"."
 
 value :: SyntaxText syn => Indent syn Value
 value =  _String /$/ string
@@ -78,15 +84,18 @@ value =  _String /$/ string
      /|/ _Bool . exact True /$/ S.string "true"
      /|/ _Bool . exact False /$/ S.string "false"
      /|/ _Null /$/ S.string "null"
-     /?/ "Error in \"value\"."
+     /?/ "Invalid JSON."
 
 main :: IO ()
 main = do
     -- Load the standard input.
     t <- T.getContents
-    
-    let parser = S.getParser $ S.runIndent value
-        printer = S.runPrinter $ S.runIndent value
+
+    -- Indent with 2 spaces.
+    let tab :: SyntaxText syn => syn ()
+        tab = sireplicate_ 2 (S.char ' ')
+        parser = S.getParser $ S.runIndent value tab
+        printer = S.runPrinter $ S.runIndent value tab
 
     -- Try to parse it.
     case AP.parseOnly (AP.skipSpace *> parser <* AP.skipSpace <* AP.endOfInput) t of
