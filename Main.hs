@@ -33,6 +33,12 @@ data Value = Object (Map Text Value)
 
 $(makePrisms ''Value)
 
+-- Indent is basically a Reader monad transformer.
+-- S.breakLine inserts a new line and correct indentation,
+-- but does not require any formatting when parsing (it just
+-- skips all white space).
+-- S.indented increases the indentation level.
+
 -- | Char encoded as 4 hex digits.
 hexCode :: SyntaxText syn => Indent syn Char
 hexCode = from enum . bifoldl1_ (iso u f) /$/ sireplicate 4 S.digitHex
