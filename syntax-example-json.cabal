@@ -1,5 +1,5 @@
 name:                syntax-example-json
-version:             0.1.0.0
+version:             0.2.0.0
 synopsis:            Example JSON parser/pretty-printer.
 description:
   Example JSON parser/pretty-printer.
