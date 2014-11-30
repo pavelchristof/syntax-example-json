@@ -28,5 +28,5 @@ source-repository head
 executable syntax-example-json
   main-is:             Main.hs
   default-language:    Haskell2010
-  build-depends:       base <5, semi-iso >= 0.5, syntax >= 0.3, syntax-attoparsec, syntax-pretty,
-                       containers, text, scientific, lens, pretty, attoparsec
+  build-depends:       base <5, semi-iso >= 0.5, syntax >= 0.3, syntax-attoparsec, syntax-printer,
+                       containers, text, scientific, lens, attoparsec

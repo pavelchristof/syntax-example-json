@@ -5,22 +5,22 @@
 import           Control.Applicative
 import           Control.Lens
 import           Control.Lens.SemiIso
-import qualified Data.Attoparsec.Text as AP
+import qualified Data.Attoparsec.Text.Lazy as AP
 import           Data.Map (Map)
 import qualified Data.Map as Map
 import           Data.Scientific (Scientific)
 import           Data.SemiIsoFunctor
 import qualified Data.Syntax as S
-import qualified Data.Syntax.Attoparsec.Text as S
+import qualified Data.Syntax.Attoparsec.Text.Lazy as S
 import           Data.Syntax.Char (SyntaxText)
 import qualified Data.Syntax.Char as S
 import qualified Data.Syntax.Combinator as S
 import           Data.Syntax.Indent (Indent)
 import qualified Data.Syntax.Indent as S
-import qualified Data.Syntax.Pretty as S
+import qualified Data.Syntax.Printer.Text as S
 import           Data.Text (Text)
-import qualified Data.Text.IO as T
-import qualified Text.PrettyPrint as P
+import qualified Data.Text.Lazy.Builder as T
+import qualified Data.Text.Lazy.IO as T
 
 -- | A JSON value.
 data Value = Object (Map Text Value)
@@ -104,13 +104,13 @@ main = do
         printer = S.runPrinter $ S.runIndent value tab
 
     -- Try to parse it.
-    case AP.parseOnly (AP.skipSpace *> parser <* AP.skipSpace <* AP.endOfInput) t of
-      Left err  -> putStrLn err
-      Right val -> do
+    case AP.parse (AP.skipSpace *> parser <* AP.skipSpace <* AP.endOfInput) t of
+      AP.Fail _ _ err  -> putStrLn err
+      AP.Done _ val -> do
         -- Try to pretty print it.
         -- (Printing cannot really fail in this example)
         case printer val of
           Left err  -> putStrLn err
-          Right doc -> putStrLn (P.render doc)
+          Right bld -> T.putStrLn (T.toLazyText bld)
 
     return ()
