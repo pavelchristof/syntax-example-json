@@ -5,6 +5,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import           Control.Applicative
+import           Control.Category.Structures
 import           Control.Lens
 import           Control.Lens.SemiIso
 import           Control.SIArrow
